@@ -18,13 +18,15 @@ module Bundler
     def run
       validate_cmd!
       SharedHelpers.set_bundle_environment
-      require 'byebug'
-      byebug
       if (bin_path = Bundler.which(cmd))
         if !Bundler.settings[:disable_exec_load] && ruby_shebang?(bin_path)
-          return kernel_load(bin_path, *args)
+          if Gem.win_platform? # remove `.bat` suffix
+            bin_path = bin_path[0..-5]
+          end
+          kernel_load(bin_path, *args)
+        else
+          kernel_exec(bin_path, *args)
         end
-        kernel_exec(bin_path, *args)
       else
         # exec using the given command
         kernel_exec(cmd, *args)
@@ -71,14 +73,31 @@ module Bundler
     end
 
     def ruby_shebang?(file)
-      if Gem.win_platform? then return true end
+      possibilities = [
+        "#!/usr/bin/env ruby\n",
+        "#!/usr/bin/env jruby\n",
+        "#!/usr/bin/env truffleruby\n",
+        "#!#{Gem.ruby}\n",
+      ]
+
+      if Gem.win_platform? # remove `bat` suffix
+        script_file = File.join(File.dirname(file), File.basename(file, File.extname(file)))
+        return false unless Pathname(script_file).exist?
+        if File.zero?(script_file)
+          Bundler.ui.warn "#{script_file} is empty"
+          return false
+        end
+        first_line = File.open(file, "r") {|f| f.read(5) }
+        return first_line.start_with?("@ECHO")
+      end
+
       if File.zero?(file)
         Bundler.ui.warn "#{file} is empty"
         return false
       end
 
-      first_line = File.open(file, "rb") {|f| f.read(3) }
-      possibilities.any? {|shebang| first_line.start_with?("#!") }
+      first_line = File.open(file, "rb") {|f| f.read(possibilities.map(&:size).max) }
+      possibilities.any? {|shebang| first_line.start_with?(shebang) }
     end
   end
 end
