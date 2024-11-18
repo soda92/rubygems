@@ -313,8 +313,6 @@ RSpec.describe "bundle exec" do
   end
 
   it "does not duplicate already exec'ed RUBYOPT" do
-    skip "https://github.com/rubygems/rubygems/issues/3351" if Gem.win_platform?
-
     install_gemfile <<-G
       source "https://gem.repo1"
       gem "myrack"
@@ -324,16 +322,23 @@ RSpec.describe "bundle exec" do
 
     rubyopt = opt_add(bundler_setup_opt, ENV["RUBYOPT"])
 
-    bundle "exec 'echo $RUBYOPT'"
+    if Gem.win_platform?
+      bundle "exec 'echo %RUBYOPT%'"
+    else
+      bundle "exec 'echo $RUBYOPT'"
+    end
     expect(out.split(" ").count(bundler_setup_opt)).to eq(1)
 
-    bundle "exec 'echo $RUBYOPT'", env: { "RUBYOPT" => rubyopt }
+    if Gem.win_platform?
+      bundle "exec 'echo %RUBYOPT%'", env: { "RUBYOPT" => rubyopt }
+    else
+      bundle "exec 'echo $RUBYOPT'", env: { "RUBYOPT" => rubyopt }
+    end
+
     expect(out.split(" ").count(bundler_setup_opt)).to eq(1)
   end
 
   it "does not duplicate already exec'ed RUBYLIB" do
-    skip "https://github.com/rubygems/rubygems/issues/3351" if Gem.win_platform?
-
     install_gemfile <<-G
       source "https://gem.repo1"
       gem "myrack"
@@ -343,10 +348,18 @@ RSpec.describe "bundle exec" do
     rubylib = rubylib.to_s.split(File::PATH_SEPARATOR).unshift lib_dir.to_s
     rubylib = rubylib.uniq.join(File::PATH_SEPARATOR)
 
-    bundle "exec 'echo $RUBYLIB'"
+    if Gem.win_platform?
+      bundle "exec 'echo %RUBYLIB%'"
+    else
+      bundle "exec 'echo $RUBYLIB'"
+    end
     expect(out).to include(rubylib)
 
-    bundle "exec 'echo $RUBYLIB'", env: { "RUBYLIB" => rubylib }
+    if Gem.win_platform?
+      bundle "exec 'echo %RUBYLIB%'", env: { "RUBYLIB" => rubylib }
+    else
+      bundle "exec 'echo $RUBYLIB'", env: { "RUBYLIB" => rubylib }
+    end
     expect(out).to include(rubylib)
   end
 
@@ -368,7 +381,7 @@ RSpec.describe "bundle exec" do
       gem "myrack"
     G
 
-    bundle "exec touch foo"
+    bundled_app("foo").write("")
     bundle "exec ./foo", raise_on_error: false
     expect(exitstatus).to eq(126)
     expect(err).to include("bundler: not executable: ./foo")
@@ -455,7 +468,7 @@ RSpec.describe "bundle exec" do
 
         it "shows bundle-exec's man page when --help is between exec and the executable" do
           with_fake_man do
-            bundle "#{exec} --help cat"
+            bundle "#{exec} --help echo"
           end
           expect(out).to include(%(["#{man_dir}/bundle-exec.1"]))
         end
