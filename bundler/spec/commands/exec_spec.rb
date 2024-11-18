@@ -62,6 +62,7 @@ RSpec.describe "bundle exec" do
   end
 
   it "works when exec'ing something else" do
+    create_file("echo", "#!/usr/bin/env ruby\nprint ARGV.join(' ')") if Gem.win_platform?
     install_gemfile "source \"https://gem.repo1\"; gem \"myrack\""
     bundle "exec echo exec"
     expect(out).to eq("exec")
@@ -110,12 +111,14 @@ RSpec.describe "bundle exec" do
   end
 
   it "accepts --verbose" do
+    create_file("echo", "#!/usr/bin/env ruby\nprint ARGV.join(' ')") if Gem.win_platform?
     install_gemfile "source \"https://gem.repo1\"; gem \"myrack\""
     bundle "exec --verbose echo foobar"
     expect(out).to eq("foobar")
   end
 
   it "passes --verbose to command if it is given after the command" do
+    create_file("echo", "#!/usr/bin/env ruby\nprint ARGV.join(' ')") if Gem.win_platform?
     install_gemfile "source \"https://gem.repo1\"; gem \"myrack\""
     bundle "exec echo --verbose"
     expect(out).to eq("--verbose")
@@ -148,9 +151,9 @@ RSpec.describe "bundle exec" do
   end
 
   it "accepts --keep-file-descriptors" do
+    create_file("echo", "#!/usr/bin/env ruby\nprint ARGV.join(' ')") if Gem.win_platform?
     install_gemfile "source \"https://gem.repo1\""
     bundle "exec --keep-file-descriptors echo foobar"
-
     expect(err).to be_empty
   end
 
@@ -315,6 +318,7 @@ RSpec.describe "bundle exec" do
   it "does not duplicate already exec'ed RUBYOPT" do
     skip "https://github.com/rubygems/rubygems/issues/3351" if Gem.win_platform?
 
+    create_file("echoopt", "#!/usr/bin/env ruby\nprint ENV['RUBYOPT']")
     install_gemfile <<-G
       source "https://gem.repo1"
       gem "myrack"
@@ -324,16 +328,17 @@ RSpec.describe "bundle exec" do
 
     rubyopt = opt_add(bundler_setup_opt, ENV["RUBYOPT"])
 
-    bundle "exec 'echo $RUBYOPT'"
+    bundle "exec echoopt"
     expect(out.split(" ").count(bundler_setup_opt)).to eq(1)
 
-    bundle "exec 'echo $RUBYOPT'", env: { "RUBYOPT" => rubyopt }
+    bundle "exec echoopt", env: { "RUBYOPT" => rubyopt }
     expect(out.split(" ").count(bundler_setup_opt)).to eq(1)
   end
 
   it "does not duplicate already exec'ed RUBYLIB" do
     skip "https://github.com/rubygems/rubygems/issues/3351" if Gem.win_platform?
 
+    create_file("echolib", "#!/usr/bin/env ruby\nprint ENV['RUBYLIB']")
     install_gemfile <<-G
       source "https://gem.repo1"
       gem "myrack"
@@ -343,10 +348,10 @@ RSpec.describe "bundle exec" do
     rubylib = rubylib.to_s.split(File::PATH_SEPARATOR).unshift lib_dir.to_s
     rubylib = rubylib.uniq.join(File::PATH_SEPARATOR)
 
-    bundle "exec 'echo $RUBYLIB'"
+    bundle "exec echolib"
     expect(out).to include(rubylib)
 
-    bundle "exec 'echo $RUBYLIB'", env: { "RUBYLIB" => rubylib }
+    bundle "exec echolib", env: { "RUBYLIB" => rubylib }
     expect(out).to include(rubylib)
   end
 
@@ -368,7 +373,7 @@ RSpec.describe "bundle exec" do
       gem "myrack"
     G
 
-    bundle "exec touch foo"
+    bundled_app("foo").write("")
     bundle "exec ./foo", raise_on_error: false
     expect(exitstatus).to eq(126)
     expect(err).to include("bundler: not executable: ./foo")
@@ -454,6 +459,7 @@ RSpec.describe "bundle exec" do
         end
 
         it "shows bundle-exec's man page when --help is between exec and the executable" do
+          create_file("cat", "#!/usr/bin/env ruby\n") if Gem.win_platform?
           with_fake_man do
             bundle "#{exec} --help cat"
           end
@@ -1105,6 +1111,7 @@ __FILE__: #{path.to_s.inspect}
       end
 
       it "correctly shells out" do
+        create_file("echo", "#!/usr/bin/env ruby\nprint ARGV.join(' ')") if Gem.win_platform?
         file = bundled_app("file_that_bundle_execs.rb")
         create_file(file, <<-RUBY)
           #!#{Gem.ruby}
