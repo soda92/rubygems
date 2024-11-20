@@ -313,53 +313,38 @@ RSpec.describe "bundle exec" do
   end
 
   it "does not duplicate already exec'ed RUBYOPT" do
+    create_file("echoopt", "#!/usr/bin/env ruby\nprint ENV['RUBYOPT']")
     install_gemfile <<-G
       source "https://gem.repo1"
       gem "myrack"
     G
-
     bundler_setup_opt = "-r#{lib_dir}/bundler/setup"
 
     rubyopt = opt_add(bundler_setup_opt, ENV["RUBYOPT"])
 
-    if Gem.win_platform?
-      bundle "exec 'echo %RUBYOPT%'"
-    else
-      bundle "exec 'echo $RUBYOPT'"
-    end
+    bundle "exec echoopt"
     expect(out.split(" ").count(bundler_setup_opt)).to eq(1)
 
-    if Gem.win_platform?
-      bundle "exec 'echo %RUBYOPT%'", env: { "RUBYOPT" => rubyopt }
-    else
-      bundle "exec 'echo $RUBYOPT'", env: { "RUBYOPT" => rubyopt }
-    end
-
+    bundle "exec echoopt", env: { "RUBYOPT" => rubyopt }
     expect(out.split(" ").count(bundler_setup_opt)).to eq(1)
   end
 
   it "does not duplicate already exec'ed RUBYLIB" do
+    skip "https://github.com/rubygems/rubygems/issues/3351" if Gem.win_platform?
+
+    create_file("echolib", "#!/usr/bin/env ruby\nprint ENV['RUBYLIB']")
     install_gemfile <<-G
       source "https://gem.repo1"
       gem "myrack"
     G
-
     rubylib = ENV["RUBYLIB"]
     rubylib = rubylib.to_s.split(File::PATH_SEPARATOR).unshift lib_dir.to_s
     rubylib = rubylib.uniq.join(File::PATH_SEPARATOR)
 
-    if Gem.win_platform?
-      bundle "exec 'echo %RUBYLIB%'"
-    else
-      bundle "exec 'echo $RUBYLIB'"
-    end
+    bundle "exec echolib"
     expect(out).to include(rubylib)
 
-    if Gem.win_platform?
-      bundle "exec 'echo %RUBYLIB%'", env: { "RUBYLIB" => rubylib }
-    else
-      bundle "exec 'echo $RUBYLIB'", env: { "RUBYLIB" => rubylib }
-    end
+    bundle "exec echolib", env: { "RUBYLIB" => rubylib }
     expect(out).to include(rubylib)
   end
 
