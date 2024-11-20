@@ -318,6 +318,7 @@ RSpec.describe "bundle exec" do
       source "https://gem.repo1"
       gem "myrack"
     G
+
     bundler_setup_opt = "-r#{lib_dir}/bundler/setup"
 
     rubyopt = opt_add(bundler_setup_opt, ENV["RUBYOPT"])
@@ -330,13 +331,12 @@ RSpec.describe "bundle exec" do
   end
 
   it "does not duplicate already exec'ed RUBYLIB" do
-    skip "https://github.com/rubygems/rubygems/issues/3351" if Gem.win_platform?
-
     create_file("echolib", "#!/usr/bin/env ruby\nprint ENV['RUBYLIB']")
     install_gemfile <<-G
       source "https://gem.repo1"
       gem "myrack"
     G
+
     rubylib = ENV["RUBYLIB"]
     rubylib = rubylib.to_s.split(File::PATH_SEPARATOR).unshift lib_dir.to_s
     rubylib = rubylib.uniq.join(File::PATH_SEPARATOR)
