@@ -313,8 +313,7 @@ RSpec.describe "bundle exec" do
   end
 
   it "does not duplicate already exec'ed RUBYOPT" do
-    echoopt = bundled_app("echoopt")
-    create_file(echoopt, "#!/usr/bin/env ruby\nprint ENV['RUBYOPT']")
+    create_file("echoopt", "#!/usr/bin/env ruby\nprint ENV['RUBYOPT']")
     install_gemfile <<-G
       source "https://gem.repo1"
       gem "myrack"
@@ -324,16 +323,15 @@ RSpec.describe "bundle exec" do
 
     rubyopt = opt_add(bundler_setup_opt, ENV["RUBYOPT"])
 
-    bundle "exec #{echoopt}"
+    bundle "exec echoopt"
     expect(out.split(" ").count(bundler_setup_opt)).to eq(1)
 
-    bundle "exec #{echoopt}", env: { "RUBYOPT" => rubyopt }
+    bundle "exec echoopt", env: { "RUBYOPT" => rubyopt }
     expect(out.split(" ").count(bundler_setup_opt)).to eq(1)
   end
 
   it "does not duplicate already exec'ed RUBYLIB" do
-    echolib = bundled_app("echolib")
-    create_file(echolib, "#!/usr/bin/env ruby\nprint ENV['RUBYLIB']")
+    create_file("echolib", "#!/usr/bin/env ruby\nprint ENV['RUBYLIB']")
     install_gemfile <<-G
       source "https://gem.repo1"
       gem "myrack"
@@ -343,10 +341,10 @@ RSpec.describe "bundle exec" do
     rubylib = rubylib.to_s.split(File::PATH_SEPARATOR).unshift lib_dir.to_s
     rubylib = rubylib.uniq.join(File::PATH_SEPARATOR)
 
-    bundle "exec #{echolib}"
+    bundle "exec echolib"
     expect(out).to include(rubylib)
 
-    bundle "exec #{echolib}", env: { "RUBYLIB" => rubylib }
+    bundle "exec echolib", env: { "RUBYLIB" => rubylib }
     expect(out).to include(rubylib)
   end
 
