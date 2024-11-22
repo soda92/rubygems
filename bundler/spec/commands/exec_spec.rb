@@ -403,8 +403,6 @@ RSpec.describe "bundle exec" do
     each_prefix.call("exec") do |exec|
       describe "when #{exec} is used" do
         before(:each) do
-          skip "https://github.com/rubygems/rubygems/issues/3351" if Gem.win_platform?
-
           install_gemfile <<-G
             source "https://gem.repo1"
             gem "myrack"
@@ -414,7 +412,6 @@ RSpec.describe "bundle exec" do
             #!/usr/bin/env ruby
             puts "args: #{ARGV.inspect}"
           RUBY
-          bundled_app("print_args").chmod(0o755)
         end
 
         it "shows executable's man page when --help is after the executable" do
@@ -435,6 +432,7 @@ RSpec.describe "bundle exec" do
 
         it "shows executable's man page when the executable has a -" do
           FileUtils.mv(bundled_app("print_args"), bundled_app("docker-template"))
+          FileUtils.mv(bundled_app("print_args.bat"), bundled_app("docker-template.bat")) if Gem.win_platform?
           bundle "#{exec} docker-template build discourse --help"
           expect(out).to eq('args: ["build", "discourse", "--help"]')
         end
