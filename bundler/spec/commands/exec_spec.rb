@@ -408,7 +408,8 @@ RSpec.describe "bundle exec" do
             gem "myrack"
           G
 
-          create_file("print_args", <<-'RUBY')
+          app = bundled_app("print_args")
+          create_file(app, <<-'RUBY')
             #!/usr/bin/env ruby
             puts "args: #{ARGV.inspect}"
           RUBY
