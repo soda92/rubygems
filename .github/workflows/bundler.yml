@@ -55,5 +55,6 @@ jobs:
       - name: Run Test
         run: |
           bin/rspec ./spec/commands/exec_spec.rb:419
+          bin/rspec ./spec/commands/exec_spec.rb:322
         working-directory: ./bundler
     timeout-minutes: ${{ matrix.timeout || 60 }}

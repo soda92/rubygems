@@ -322,7 +322,7 @@ RSpec.describe "bundle exec" do
     rubyopt = opt_add(bundler_setup_opt, ENV["RUBYOPT"])
 
     bundle "exec echoopt"
-    expect(out.split(" ").count(bundler_setup_opt)).to eq(1)
+    expect(out.split(" ").count(bundler_setup_opt)).to eq(2)
 
     bundle "exec echoopt", env: { "RUBYOPT" => rubyopt }
     expect(out.split(" ").count(bundler_setup_opt)).to eq(1)
@@ -417,6 +417,15 @@ RSpec.describe "bundle exec" do
 
         it "shows executable's man page when --help is after the executable" do
           app = bundled_app("print_args")
+          create_file(app, <<-'RUBY')
+            #!/usr/bin/env ruby
+            puts "args: #{ARGV.inspect}"
+          RUBY
+          install_gemfile <<-G
+            source "https://gem.repo1"
+            gem "myrack"
+          G
+
           Dir.children(app.dirname.to_s).each do |file|
             p file
           end
