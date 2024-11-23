@@ -41,11 +41,20 @@ module Bundler
 
     def kernel_exec(*args)
       p "---pwd---", Dir.pwd
+      p "---debug---", cmd, args
+      p "---dir files---"
+
+      Dir.children(Dir.pwd).each do |file|
+        p file
+      end
+
+      # Kernel.exec("cmd /C \"chcp 65001 && dir\"")
       Kernel.exec(*args)
     rescue Errno::EACCES, Errno::ENOEXEC
       Bundler.ui.error "bundler: not executable: #{cmd}"
       exit 126
-    rescue Errno::ENOENT
+    rescue Errno::ENOENT => e
+      puts "Exception Occurred #{e}. Message: #{e.message}. Backtrace:  \n #{e.backtrace.join("\n")}"
       Bundler.ui.error "bundler: command not found: #{cmd}"
       Bundler.ui.warn "Install missing gem executables with `bundle install`"
       exit 127
