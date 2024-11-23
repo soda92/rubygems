@@ -421,8 +421,6 @@ RSpec.describe "bundle exec" do
             p file
           end
           puts "contents:---", File.read(bundled_app("print_args.bat")) if Gem.win_platform?
-          ENV["PATH"] += ";"
-          ENV["PATH"] += app.dirname.to_s
           bundle "#{exec} print_args --help"
           expect(out).to eq('args: ["--help"]')
         end
