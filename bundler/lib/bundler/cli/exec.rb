@@ -22,9 +22,11 @@ module Bundler
         if !Bundler.settings[:disable_exec_load] && ruby_shebang?(bin_path)
           return kernel_load(bin_path, *args)
         end
+        p "---bin_path---", bin_path
         kernel_exec(bin_path, *args)
       else
         # exec using the given command
+        p "---cmd---", cmd
         kernel_exec(cmd, *args)
       end
     end
@@ -38,6 +40,7 @@ module Bundler
     end
 
     def kernel_exec(*args)
+      p "---pwd---", Dir.pwd
       Kernel.exec(*args)
     rescue Errno::EACCES, Errno::ENOEXEC
       Bundler.ui.error "bundler: not executable: #{cmd}"
