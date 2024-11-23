@@ -54,6 +54,6 @@ jobs:
           bin/rake spec:parallel_deps
       - name: Run Test
         run: |
-          bin/rspec ./spec/commands/exec_spec.rb:399
+          bin/rspec ./spec/commands/exec_spec.rb:419
         working-directory: ./bundler
     timeout-minutes: ${{ matrix.timeout || 60 }}
