@@ -321,7 +321,7 @@ RSpec.describe "bundle exec" do
 
     rubyopt = opt_add(bundler_setup_opt, ENV["RUBYOPT"])
 
-    bundle "exec echoopt"
+    bundle "exec echoopt --demo-option"
     expect(out.split(" ").count(bundler_setup_opt)).to eq(2)
 
     bundle "exec echoopt", env: { "RUBYOPT" => rubyopt }
