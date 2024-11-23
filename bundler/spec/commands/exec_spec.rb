@@ -416,6 +416,8 @@ RSpec.describe "bundle exec" do
         end
 
         it "shows executable's man page when --help is after the executable" do
+          puts app
+          puts Bundler.which("print_args")
           bundle "#{exec} print_args --help"
           expect(out).to eq('args: ["--help"]')
         end

@@ -209,6 +209,8 @@ module Spec
       env["RUBYOPT"] = opt_add(opt_add("-r#{spec_dir}/support/switch_rubygems.rb", env["RUBYOPT"]), ENV["RUBYOPT"])
       options[:env] = env
       options[:dir] ||= bundled_app
+      puts "options:---", options
+      puts cmd
 
       sh(cmd, options, &block)
     end
