@@ -495,8 +495,10 @@ module Bundler
     end
 
     def which(executable)
+      p "---", Dir.pwd
       executable_path = find_executable(executable)
       return executable_path if executable_path
+      p "--- not found in current dir"
 
       if (paths = ENV["PATH"])
         quote = '"'
@@ -506,6 +508,7 @@ module Bundler
           return executable_path if executable_path
         end
       end
+      p "--- #{executable} not found"
     end
 
     def find_executable(path)
