@@ -498,7 +498,7 @@ module Bundler
       p "---", Dir.pwd
       executable_path = find_executable(executable)
       p "found #{executable_path}" if executable_path
-      return "./" + executable_path if executable_path
+      return executable_path if executable_path
       p "--- not found in current dir"
 
       if (paths = ENV["PATH"])
